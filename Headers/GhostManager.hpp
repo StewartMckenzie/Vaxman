@@ -9,11 +9,18 @@ class GhostManager
 	//Damn, I really used a lot of timers.
 	unsigned short wave_timer;
 
-	std::vector<Ghost> GhostList;
 public:
+	std::vector<Ghost> GhostList;
+private:
+
+	Ghost* leadGhost;
+public:
+
 	Position home;
 	Position homeExit;
-
+	int GhostCount;
+	bool multiply=false;
+	timer spawnTimer;
 
 	GhostManager();
 	void multiplyGhosts();

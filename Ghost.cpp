@@ -7,10 +7,12 @@
 #include "Headers/Ghost.hpp"
 #include "Headers/MapCollision.hpp"
 
-Ghost::Ghost(GhostType type) :
-	type(type)
+Ghost::Ghost(int passedType) :
+	type(passedType),
+	alive(true)
 {
-	alive = true;
+
+
 	//I keep writing "gohst" instead of "gohst" (THERE! I did it again!).
 	//So in this file I'll write only "gohst".
 	//Enjoy!
@@ -33,8 +35,8 @@ bool Ghost::pacman_collision(const Position& i_pacman_position)
 
 float Ghost::get_target_distance(unsigned char i_direction)
 {
-	short x = position.x;
-	short y = position.y;
+	int x = position.x;
+	int y = position.y;
 
 	//We'll imaginarily move the gohst in a given direction and calculate the distance to the target.
 	switch (i_direction)
@@ -98,27 +100,28 @@ void Ghost::draw(bool i_flash, sf::RenderWindow& i_window)
 			{
 				//Red color
 				body.setColor(sf::Color(255, 0, 0));
-
+	
 				break;
 			}
 			case 1:
 			{
 				//Pink color
 				body.setColor(sf::Color(255, 182, 255));
-
+		
 				break;
 			}
 			case 2:
 			{
 				//Cyan color (I still don't understand why they called it blue)
-				body.setColor(sf::Color(0, 255, 255));
-
+				body.setColor(sf::Color(72, 209, 204));
+		
 				break;
 			}
 			case 3:
 			{
 				//Orange color
 				body.setColor(sf::Color(255, 182, 85));
+				break;
 			}
 		}
 
@@ -135,6 +138,7 @@ void Ghost::draw(bool i_flash, sf::RenderWindow& i_window)
 
 		if (1 == i_flash && 0 == body_frame % 2)
 		{
+	
 			body.setColor(sf::Color(255, 255, 255));
 			face.setColor(sf::Color(255, 0, 0));
 		}
@@ -177,9 +181,9 @@ void Ghost::reset(const Position& i_home, const Position& i_home_exit)
 	target = i_home_exit;
 }
 
-void Ghost::set_position(short i_x, short i_y)
+void Ghost::set_position(int x_val,int y_val)
 {
-	position = {i_x, i_y};
+	position = Position(x_val,y_val);
 }
 
 void Ghost::switch_mode()
@@ -365,35 +369,34 @@ void Ghost::update(unsigned char i_level, std::array<std::array<Cell, MAP_HEIGHT
 
 	if (1 == pacman_collision(i_pacman.get_position()))
 	{
-		if (0 == frightened_mode) //When the gohst is not frightened and collides with Pacman, we kill Pacman.
-		{
-		
-		}
-		else //Otherwise, the gohst starts running towards the house.
-		{
+		alive = false;
 			use_door = 1;
 
 			frightened_mode = 2;
-
+	
 			target = home;
-		}
+		
+	
 	}
 }
 
 void Ghost::update_target(unsigned char i_pacman_direction, const Position& i_ghost_0_position, const Position& i_pacman_position)
 {
-	if (1 == use_door) //If the gohst can use the door.
+	if (1 == use_door ) //If the gohst can use the door.
 	{
 		if (position == target)
 		{
-			if (home_exit == target) //If the gohst has reached the exit.
+			if (home_exit == target ) //If the gohst has reached the exit.
 			{
+			
 				use_door = 0; //It can no longer use the door.
+				alive = true;
+		
 			}
 			else if (home == target) //If the gohst has reached its home.
 			{
 				frightened_mode = 0; //It stops being frightened.
-
+			
 				target = home_exit; //And starts leaving the house.
 			}
 		}
@@ -403,12 +406,13 @@ void Ghost::update_target(unsigned char i_pacman_direction, const Position& i_gh
 		if (0 == movement_mode) //The scatter mode
 		{
 			//Each gohst goes to the corner it's assigned to.
+	
 			switch (type)
 			{
 				case 0:
 				{
 					target = {CELL_SIZE * (MAP_WIDTH - 1), 0};
-
+			
 					break;
 				}
 				case 1:
@@ -436,7 +440,7 @@ void Ghost::update_target(unsigned char i_pacman_direction, const Position& i_gh
 				case 0: //The red gohst will chase Pacman.
 				{
 					target = i_pacman_position;
-
+		
 					break;
 				}
 				case 1: //The pink gohst will chase the 4th cell in front of Pacman.
@@ -526,7 +530,8 @@ void Ghost::update_target(unsigned char i_pacman_direction, const Position& i_gh
 	}
 }
 
-Position Ghost::get_position()
+Position Ghost::get_position() const
 {
+	
 	return position;
 }

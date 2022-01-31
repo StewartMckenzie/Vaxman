@@ -6,51 +6,57 @@
 #include "Headers/Pacman.hpp"
 #include "Headers/Ghost.hpp"
 #include "Headers/GhostManager.hpp"
-struct timer
-{
-	typedef std::chrono::steady_clock clock;
-	typedef std::chrono::seconds seconds;
 
-	void reset() { start = clock::now(); }
-
-	unsigned long long seconds_elapsed() const
-	{
-		return std::chrono::duration_cast<seconds>(clock::now() - start).count();
-	}
-
-private: clock::time_point start = clock::now();
-};
 
 
 GhostManager::GhostManager() :
 	current_wave(0),
 	wave_timer(LONG_SCATTER_DURATION),
-	GhostList({Ghost(GhostType::red), Ghost(GhostType::pink), Ghost(GhostType::blue), Ghost(GhostType::orange)}),
-	home(Position(160, 112)),
-	homeExit(Position(160, 114))
+	GhostList({ Ghost(GhostType::red), Ghost(GhostType::pink), Ghost(GhostType::blue), Ghost(GhostType::orange) }),
+	leadGhost(&GhostList[0]),
+	home(Position(160, 144)),
+	homeExit(Position(160, 112)),
+	GhostCount(GhostList.size())
 {
 
 }
 
 void GhostManager::multiplyGhosts()
 {
+	std::cout <<"multiply!"<<std::endl;
 	bool leadingGhost = false;
-	Ghost* leadGhost;
-	for (Ghost& ghost : GhostList)
+	int currentSize = GhostList.size();
+
+	for (int i=0;i< currentSize;i++ )
 	{
-		if (!leadingGhost && ghost.type==GhostType::red) {
-			leadGhost = &ghost;
+
+		if (!leadingGhost && GhostList[i].type ==0) {
+			leadGhost = &GhostList[i];
+	
 			leadingGhost = true;
 		}
-		if (ghost.alive) {
-			GhostList.push_back(Ghost(ghost.type));
-
+		if (GhostList[i].alive && GhostList[i].frightened_mode<1) {
+			GhostList.push_back(Ghost(GhostList[i].type));
+			GhostList.back().set_position(GhostList[i].get_position().x, GhostList[i].get_position().y);
+			GhostList.back().reset(home, homeExit);
+			std::cout << i<<std::endl;
 		}
+
+	
+		
+	
 	}
+	spawnTimer.reset();
 }
 
 void GhostManager::draw(bool i_flash, sf::RenderWindow& i_window)
 {
+	if (multiply) {
+
+	
+		multiplyGhosts();
+		multiply = false;
+}
 	for (Ghost& ghost : GhostList)
 	{
 		ghost.draw(i_flash, i_window);
@@ -66,19 +72,23 @@ void GhostManager::reset(unsigned char i_level, const std::vector<Position>& i_g
 
 	for (unsigned char a = 0; a < 4; a++)
 	{
+
+
 		GhostList[a].set_position(i_ghost_positions[a].x, i_ghost_positions[a].y);
 	}
 
 	for (Ghost& ghost : GhostList)
 	{
 		//We use the blue ghost to get the location of the house and the red ghost to get the location of the exit.
+
 		ghost.reset(GhostList[2].get_position(), GhostList[0].get_position());
 	}
+
 }
 
 void GhostManager::update(unsigned char i_level, std::array<std::array<Cell, MAP_HEIGHT>, MAP_WIDTH>& i_map, Pacman& i_pacman)
 {
-
+	if(GhostList.size() >= MAX_GHOSTS) { i_pacman.set_dead(1); }
 	if (0 == i_pacman.get_energizer_timer()) //We won't update the wave timer when Pacman is energized.
 	{
 		if (0 == wave_timer)
@@ -90,6 +100,7 @@ void GhostManager::update(unsigned char i_level, std::array<std::array<Cell, MAP
 				for (Ghost& ghost : GhostList)
 				{
 					ghost.switch_mode();
+				
 				}
 			}
 
@@ -116,7 +127,7 @@ void GhostManager::update(unsigned char i_level, std::array<std::array<Cell, MAP
 
 	for (Ghost& ghost : GhostList)
 	{
-
-		ghost.update(i_level, i_map, GhostList[0], i_pacman);
+	
+		ghost.update(i_level, i_map, *leadGhost, i_pacman);
 	}
 }

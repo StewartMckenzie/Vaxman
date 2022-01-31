@@ -12,7 +12,7 @@ class Ghost
 	//0 - I'm not frightened
 	//1 - Okay, maybe I am
 	//2 - AAAAAAAH!!! I'M GOING TO MY HOUSE!
-	unsigned char frightened_mode;
+
 	//To make the ghost move more slowly, we'll move it after a certain number of frames. So we need a timer.
 	unsigned char frightened_speed_timer;
 	//0 - Red
@@ -24,7 +24,7 @@ class Ghost
 
 
 public:
-	Ghost(GhostType type);
+	Ghost(int type);
 	//The ghost will go here when escaping.
 	Position home;
 	//You can't stay in your house forever (sadly).
@@ -33,18 +33,20 @@ public:
 	Position position;
 	//Current target.
 	Position target;
-	GhostType type;
+	int type;
 	bool alive;
+	unsigned char frightened_mode;
 	bool pacman_collision(const Position& i_pacman_position);
-
+	bool duplicate=false;
+	bool revived = false;
 	float get_target_distance(unsigned char i_direction);
 
 	void draw(bool i_flash, sf::RenderWindow& i_window);
 	void reset(const Position& i_home, const Position& i_home_exit);
-	void set_position(short i_x, short i_y);
+	void set_position(int x_val, int y_val);
 	void switch_mode();
 	void update(unsigned char i_level, std::array<std::array<Cell, MAP_HEIGHT>, MAP_WIDTH>& i_map, Ghost& i_ghost_0, Pacman& i_pacman);
 	void update_target(unsigned char i_pacman_direction, const Position& i_ghost_0_position, const Position& i_pacman_position);
 
-	Position get_position();
+	Position get_position() const;
 };

@@ -1,5 +1,7 @@
 #pragma once
-
+#include <iostream>
+#include <chrono>
+#include <ctime>
 //I won't explain this.
 constexpr unsigned char CELL_SIZE = 16;
 //This too.
@@ -42,8 +44,9 @@ constexpr unsigned short SHORT_SCATTER_DURATION = 256;
 
 
 
-constexpr unsigned short MULTIPLY_TIMER_DURATION = 10;
+constexpr unsigned short MULTIPLY_TIMER_DURATION = 30;
 constexpr unsigned short INITIAL_GHOSTS_AMMOUNT = 4;
+constexpr unsigned short MAX_GHOSTS = 32* INITIAL_GHOSTS_AMMOUNT;
 //I used enums! I rarely use them, so enjoy this historical moment.
 enum Cell
 {
@@ -53,9 +56,9 @@ enum Cell
 	Pellet,
 	Wall
 };
-enum GhostType
+enum GhostType: int
 {
-	red, blue, pink, orange
+	red,  pink, blue, orange
 };
 struct Position
 {
@@ -64,7 +67,7 @@ struct Position
 	Position() {
 	
 	}
-	Position(short xValue,short yValue) {
+	Position(int xValue,int yValue) {
 		x = xValue;
 		y = yValue;
 	}
@@ -76,3 +79,17 @@ struct Position
 	}
 };
 
+struct timer
+{
+	typedef std::chrono::steady_clock clock;
+	typedef std::chrono::seconds seconds;
+
+	void reset() { start = clock::now();}
+
+	unsigned long long seconds_elapsed() const
+	{
+		return std::chrono::duration_cast<seconds>(clock::now() - start).count();
+	}
+
+private: clock::time_point start = clock::now();
+};

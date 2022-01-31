@@ -11,20 +11,7 @@
 #include "Headers/ConvertSketch.hpp"
 #include "Headers/DrawMap.hpp"
 #include "Headers/MapCollision.hpp"
-struct timer
-{
-	typedef std::chrono::steady_clock clock;
-	typedef std::chrono::seconds seconds;
 
-	void reset() { start = clock::now(); }
-
-	unsigned long long seconds_elapsed() const
-	{
-		return std::chrono::duration_cast<seconds>(clock::now() - start).count();
-	}
-
-private: clock::time_point start = clock::now();
-};
 
 int main()
 {
@@ -42,7 +29,7 @@ int main()
 	std::array<std::string, MAP_HEIGHT> map_sketch = {
 		" ################### ",
 		" #........#........# ",
-		" #.##.###.#.###.##.# ",
+		" #o##.###.#.###.##o# ",
 		" #.................# ",
 		" #.##.#.#####.#.##.# ",
 		" #....#...#...#....# ",
@@ -58,7 +45,7 @@ int main()
 		" #..#.....P.....#..# ",
 		" ##.#.#.#####.#.#.## ",
 		" #....#...#...#....# ",
-		" #.######.#.######.# ",
+		" #o######.#.######o# ",
 		" #.................# ",
 		" ################### "
 	};
@@ -90,7 +77,7 @@ int main()
 	previous_time = std::chrono::steady_clock::now();
 
 	timer t;
-
+	ghost_manager.spawnTimer = t;
 	while (1 == window.isOpen())
 	{
 		//Here we're calculating the lag.
@@ -99,7 +86,7 @@ int main()
 		lag += delta_time;
 
 		previous_time += std::chrono::microseconds(delta_time);
-		//if (t.seconds_elapsed() == MULTIPLY_TIMER_DURATION) { ghost_manager.multiplyGhosts(); t.reset(); }
+		if (t.seconds_elapsed() == MULTIPLY_TIMER_DURATION) { if(ghost_manager.multiply==false) ghost_manager.multiply = true; t.reset(); }
 		//While the lag exceeds the maximum allowed frame duration.
 		while (FRAME_DURATION <= lag)
 		{
@@ -165,9 +152,12 @@ int main()
 				}
 
 				map = convert_sketch(map_sketch, ghost_positions, pacman);
-
+				ghost_manager.GhostList.clear();
+				ghost_manager.GhostList = { Ghost(GhostType::red), Ghost(GhostType::pink), Ghost(GhostType::blue), Ghost(GhostType::orange) };
+				
+				
 				ghost_manager.reset(level, ghost_positions);
-
+				
 				pacman.reset();
 			}
 
@@ -191,7 +181,7 @@ int main()
 				{
 					if (1 == game_won)
 					{
-						draw_text(1, 0, 0, "Next level!", window);
+						draw_text(1, 0, 0, "You Win!", window);
 					}
 					else
 					{
